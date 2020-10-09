@@ -1,0 +1,112 @@
+img {
+  
+    position: absolute;
+    display: block;
+    height: 100vh;
+    margin: auto;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+.visible {
+  animation-duration: 12s;
+  animation-name: fadeIn;
+  animation-iteration-count: 1;
+}
+
+.hidden {
+  animation-duration: 12s;
+  animation-name: fadeOut;
+  animation-iteration-count: 1;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity:0;
+  }
+
+  30%{
+    opacity: 0
+  }
+
+  50%{
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+@keyframes fadeOut {
+  from {
+    opacity:1;
+  }
+
+  30%{
+    opacity: 1;
+  }
+
+  50%{
+    opacity: 0;
+  }
+
+  to{
+    opacity: 0;
+  }
+}
+
+/*
+.fade-in {
+  animation: fadeIn ease 8s;
+  animation-iteration-count: infinite;
+  -webkit-animation: fadeIn ease 8s;
+  -moz-animation: fadeIn ease 8s;
+  -o-animation: fadeIn ease 8s;
+  -ms-animation: fadeIn ease 8s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-moz-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-webkit-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-o-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}*/
+/*
+@-ms-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+}*/
