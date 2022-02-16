@@ -2,6 +2,16 @@
   text-align: center;
 }
 
+:root{
+  --loading-bg-color: #333;
+  --text-color: #ccc;
+}
+
+body {
+  background-color: var(--loading-bg-color);
+  color: var(--text-color);
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -44,7 +54,7 @@
   left: 50%;
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
-  background-color: #e4ede6;
+  background-color: var(--loading-bg-color);
 }
 
 

@@ -5,6 +5,7 @@ import axios from 'axios';
 import './params.js';
 // import CrossfadeImage from "./crossfade";
 import CircleLoader from "react-spinners/CircleLoader";
+import RingLoader from "react-spinners/RingLoader";
 import Switcher from "./switcher"
 
 store.set('base_url', 'https://picasa.exploretheworld.tech/');
@@ -171,7 +172,7 @@ class App extends React.Component {
    componentDidMount() {
       // this.getURLs() //.then( ()=> {console.log("hi")})
 
-      document.body.style.backgroundColor = "#e4ede6";
+      // document.body.style.backgroundColor = "#e4ede6";
       this.login().then( () => {
         this.getList().then(  () => {
           this.getAccessKey().then( () => {
@@ -232,6 +233,12 @@ class App extends React.Component {
             // ) : (
             //   <div ></div>
             // )}
+                  //<CircleLoader
+                  // css={override}
+                  //size={250}
+                  //color={"#9df2f2"}
+                  //loading={this.state.loading}
+                  ///>
           <div>
             {this.state.help ? (
               <div className="loader">
@@ -249,11 +256,11 @@ class App extends React.Component {
             <div >
               {this.state.loading ? (
                 <div className="loader">
-                  <CircleLoader
-                  // css={override}
-                  size={250}
-                  color={"#993333"}
-                  loading={this.state.loading}
+                  <RingLoader
+                    size={500}
+                    color={"#9df2f2"}
+                    loading={this.state.loading}
+                    speedMultiplier={0.2}
                   />
                 </div>
               ) : (

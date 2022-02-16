@@ -34,17 +34,14 @@
   0% {
     opacity: 1;
   }
+  80% {
+    opacity: 0;
+  }
   100% {
     opacity: 0;
   }
 }
 
-
-img{
-  display: block;
-  height: 100vh;
-  margin: auto;
-}
 
 .current {
   /*display: block;*/
