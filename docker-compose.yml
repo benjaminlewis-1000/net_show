@@ -1,5 +1,4 @@
 
-version: "3.3"
 services:
   slideshow_web:
     build:
@@ -28,7 +27,7 @@ services:
      - 8085:5000
     volumes:
       - '/app/node_modules'
-      - /home/benjamin/git_repos/sshow/:/app
+      - /home/benjamin/git_repos/net_slideshow/:/app
     networks:
       - traefik_proxy
     restart: always
