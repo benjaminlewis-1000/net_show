@@ -2,13 +2,13 @@ import React from 'react';
 import './App.css';
 import store from 'store';
 import axios from 'axios';
-import './params.js';
+// import './params.js';
 // import CrossfadeImage from "./crossfade";
-import CircleLoader from "react-spinners/CircleLoader";
+// import CircleLoader from "react-spinners/CircleLoader";
 import RingLoader from "react-spinners/RingLoader";
 import Switcher from "./switcher"
 
-store.set('base_url', 'https://picasa.exploretheworld.tech/');
+// store.set('base_url', 'https://picasa.exploretheworld.tech/');
 
 
 function shuffle(array) {
@@ -53,7 +53,7 @@ class App extends React.Component {
       help=true;
     }
 
-    const base_url = store.get('base_url')
+    const base_url = process.env.REACT_APP_BASE_URL; //store.get('base_url')
 
     const axiosInstance = axios.create({
         // baseURL: api_url,
@@ -66,8 +66,10 @@ class App extends React.Component {
     });
 
     this.state = {
-      password: store.get('pass'),
-      username: store.get('username'),
+      // password: store.get('pass'),
+      // username: store.get('username'),
+      password: process.env.REACT_APP_PASS,
+      username: process.env.REACT_APP_USERNAME,
       token_url: base_url + 'api/token/obtain/',
       param_url: base_url + "api/parameters",
       list_url: base_url + "api/image_list/" + search,
@@ -106,6 +108,9 @@ class App extends React.Component {
             return resolve();
             }
           )
+          .catch((error) =>{
+            console.error("Caught an error:", error.message, "This error happened because the hard-coded username and/or password is incorrect.");
+          })
         }
       , 1000)
      });
