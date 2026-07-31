@@ -43,10 +43,6 @@ class App extends React.Component {
       slide_len = 6;
     }
 
-//   if (params.get('height') !== null){
-//        height= params.get('height')
-//    }
-
     if (params.get('help') === null){
       var help=false;
     }else{
@@ -54,26 +50,23 @@ class App extends React.Component {
     }
 
     const base_url = process.env.REACT_APP_BASE_URL; //store.get('base_url')
+    const picasa_api_key = process.env.REACT_APP_PICASA_API_KEY; // || "6w808pb9Wsg3DiM";
 
     const axiosInstance = axios.create({
         // baseURL: api_url,
         timeout: 60000,
         headers: {
-            'Authorization': 'TBD',
+            // 'Authorization': 'TBD',
             'Content-Type': 'application/json',
-            'accept': 'application/json'
+            'accept': 'application/json',
+            'X-Slideshow-Key': picasa_api_key,
         }
     });
 
     this.state = {
-      // password: store.get('pass'),
-      // username: store.get('username'),
-      password: process.env.REACT_APP_PASS,
-      username: process.env.REACT_APP_USERNAME,
-      token_url: base_url + 'api/token/obtain/',
+      // token_url: base_url + 'api/token/obtain/',
       param_url: base_url + "api/parameters",
       list_url: base_url + "api/image_list/" + search,
-      // list_url: base_url + "api/image_list/?people=Jessica Lewis",
       base_url: base_url,
       loading: true,
       axiosInstance: axiosInstance,
@@ -86,48 +79,37 @@ class App extends React.Component {
 
   }
 
-  login = async () => {
+  // login = async () => {
 
-    const login_token = new Promise((resolve, reject) => {
-      setTimeout(() => 
-        { 
+  //   const login_token = new Promise((resolve, reject) => {
+  //     setTimeout(() => 
+  //       { 
            
-          this.state.axiosInstance.post(this.state.token_url, {
-              username: this.state.username,
-              password: this.state.password
-          },{
-            headers: {
-              'content-type': 'application/json'
-            }
-          })
-          .then(response => {
-            store.set('access_token',  'JWT ' + response.data.access.replace(/['"]+/g, '') )
+  //         this.state.axiosInstance.post(this.state.token_url, {})
+  //         .then(response => {
+  //           store.set('access_token',  'JWT ' + response.data.access.replace(/['"]+/g, '') )
 
-            this.setState({username: 'removed' })
-            this.setState({password: 'removed' })
-            return resolve();
-            }
-          )
-          .catch((error) =>{
-            console.error("Caught an error:", error.message, "This error happened because the hard-coded username and/or password is incorrect.");
-          })
-        }
-      , 1000)
-     });
+  //           // this.setState({username: 'removed' })
+  //           // this.setState({password: 'removed' })
+  //           return resolve();
+  //           }
+  //         )
+  //         .catch((error) =>{
+  //           console.error("Caught an error:", error.message, "This error happened because the hard-coded username and/or password is incorrect.");
+  //         })
+  //       }
+  //     , 1000)
+  //    });
 
-    return login_token
+  //   return login_token
 
     
-  }
+  // }
 
   getAccessKey = async() => {
 
     const a = new Promise((resolve, reject) => {
-      this.state.axiosInstance.get(this.state.param_url, {
-        headers : {
-          'Authorization': store.get('access_token'),
-        }
-      })
+      this.state.axiosInstance.get(this.state.param_url)
       .then( (response) => {
         // this.state.img_access_key = response.data['random_access_key']
         this.setState({img_access_key: response.data['random_access_key'] })
@@ -148,13 +130,10 @@ class App extends React.Component {
 
     const a = new Promise((resolve, reject) => {
 
-      this.state.axiosInstance.get(this.state.list_url, {
-        headers : {
-          'Authorization': store.get('access_token'),
-        }
-      })
+      this.state.axiosInstance.get(this.state.list_url)
       .then( (response) => {
         // this.state.image_ids =  response.data['url_keys']
+        console.log(response)
         var image_ids = response.data['url_keys']
         console.log(image_ids.length)
         if (this.state.shuffle){
@@ -178,21 +157,21 @@ class App extends React.Component {
       // this.getURLs() //.then( ()=> {console.log("hi")})
 
       // document.body.style.backgroundColor = "#e4ede6";
-      this.login().then( () => {
-        this.getList().then(  () => {
-          this.getAccessKey().then( () => {
-
-            var first_img = this.state.base_url + 'api/keyed_image/slideshow/?id=' + this.state.image_ids[0] + '&access_key=' + this.state.img_access_key
-            this.setState({image_url: first_img})
-            this.setState({imageIndex: 0})
-            this.setState({loading: false})
-            // document.body.style.backgroundColor = "gray";
-            if (! this.state.help ){
-              document.body.style.backgroundColor = "black";
-            }
-          })
+      // this.login().then( () => {
+      this.getList().then(  () => {
+        this.getAccessKey().then( () => {
+          console.log("Access key is: " + this.state.img_access_key)
+          var first_img = this.state.base_url + 'api/keyed_image/slideshow/?id=' + this.state.image_ids[0] + '&access_key=' + this.state.img_access_key
+          this.setState({image_url: first_img})
+          this.setState({imageIndex: 0})
+          this.setState({loading: false})
+          // document.body.style.backgroundColor = "gray";
+          if (! this.state.help ){
+            document.body.style.backgroundColor = "black";
+          }
         })
       })
+      // })
 
    }
 
@@ -209,41 +188,7 @@ class App extends React.Component {
 
   render(){
 
-  //   return (
-  //   <div className="App">
-  //     <header className="App-header">
-  //       <img src={logo} className="App-logo" alt="logo" />
-  //       <p>
-  //         Edit <code>src/App.js</code> and save to reload.
-  //       </p>
-  //       <a
-  //         className="App-link"
-  //         href="https://reactjs.org"
-  //         target="_blank"
-  //         rel="noopener noreferrer"
-  //       >
-  //         Learn React
-  //       </a>
-  //     </header>
-  //   </div>
-  // );
-  // }
-  // const defaultStyle = { height: '100vh'};
     return (
-      // {this.state.help ? (
-      //   <div></div>
-      //   ) : (
-            // {this.state.loading ? (
-            //   <div className="loader"></div>
-            // ) : (
-            //   <div ></div>
-            // )}
-                  //<CircleLoader
-                  // css={override}
-                  //size={250}
-                  //color={"#9df2f2"}
-                  //loading={this.state.loading}
-                  ///>
           <div>
             {this.state.help ? (
               <div className="loader">
