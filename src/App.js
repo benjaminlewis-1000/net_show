@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import store from 'store';
+// import store from 'store';
 import axios from 'axios';
 // import './params.js';
 // import CrossfadeImage from "./crossfade";
@@ -75,7 +75,7 @@ class App extends React.Component {
       shuffle: params.get('cronological') === null
     };
 
-    this.changeImage = this.changeImage.bind(this);
+  //   this.changeImage = this.changeImage.bind(this);
 
   }
 
@@ -160,8 +160,9 @@ class App extends React.Component {
       // this.login().then( () => {
       this.getList().then(  () => {
         this.getAccessKey().then( () => {
-          console.log("Access key is: " + this.state.img_access_key)
+          console.log("Access key is o: " + this.state.img_access_key)
           var first_img = this.state.base_url + 'api/keyed_image/slideshow/?id=' + this.state.image_ids[0] + '&access_key=' + this.state.img_access_key
+          console.log("First URL: " + first_img)
           this.setState({image_url: first_img})
           this.setState({imageIndex: 0})
           this.setState({loading: false})
@@ -169,22 +170,24 @@ class App extends React.Component {
           if (! this.state.help ){
             document.body.style.backgroundColor = "black";
           }
+	  console.log(this.state)
         })
       })
       // })
 
    }
 
-  changeImage() {
-    if (this.state.imageIndex === this.state.image_ids.length - 1) {
-      var newIdx = 0
-    } else {
-      newIdx = this.state.imageIndex + 1;
-    }
-    var new_img = this.state.base_url + 'api/keyed_image/slideshow/?id=' + this.state.image_ids[newIdx] + '&access_key=' + this.state.img_access_key
-    this.setState({image_url: new_img})
-    this.setState({ imageIndex: newIdx });
-  }
+//  changeImage() {
+//    if (this.state.imageIndex === this.state.image_ids.length - 1) {
+//      var newIdx = 0
+//    } else {
+//      newIdx = this.state.imageIndex + 1;
+//    }
+//    var new_img = this.state.base_url + 'api/keyed_image/slideshow/?id=' + this.state.image_ids[newIdx] + '&access_key=' + this.state.img_access_key
+//    console.log("New URL: " + new_img)
+//    this.setState({image_url: new_img})
+//    this.setState({ imageIndex: newIdx });
+//  }
 
   render(){
 

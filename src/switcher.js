@@ -1,81 +1,129 @@
 import React from 'react';
 import './image.css';
 
-
 class Switcher extends React.Component {
   constructor(props) {
     super(props);
-    var idx_tik = 0;
-    var idx_tok = 0
-    const base_url = props.base_url + 'api/keyed_image/slideshow/?id='
-    if (props.image_ids.length > 1){
-      idx_tok = 1;
-    }
 
-    const url_tik = base_url  + props.image_ids[0] + '&access_key=' + props.img_access_key 
-    const url_tok = base_url  + props.image_ids[idx_tok] + '&access_key=' + props.img_access_key 
-    const duration_css = {"animationDuration": props.slide_len * 2 + "s"}
+    const baseUrl = `${props.base_url}api/keyed_image/slideshow/?id=`;
+    const initialTokIdx = props.image_ids.length > 1 ? 1 : 0;
 
     this.state = {
-      idx_tik: idx_tik,
-      url_tik: url_tik,
-      idx_tok: idx_tok,
-      url_tok: url_tok,
-      index: idx_tok,
-      move: false,
-      image_ids: props.image_ids,
-      img_access_key: props.img_access_key,
-      base_url: base_url,
-      tiktok : false,
-      slide_len: props.slide_len,
-      css: duration_css
+      idx_tik: 0,
+      url_tik: this.buildUrl(baseUrl, props.image_ids[0], props.img_access_key),
+      idx_tok: initialTokIdx,
+      url_tok: this.buildUrl(baseUrl, props.image_ids[initialTokIdx], props.img_access_key),
+      currentIndex: initialTokIdx,
+      tiktok: false,
     };
-    
-    this.construct_url = this.construct_url.bind(this)
+  }
+
+  buildUrl(baseUrl, id, accessKey) {
+    if (!id) return '';
+    return `${baseUrl}${id}&access_key=${accessKey}`;
   }
 
   getNextIndex(idx) {
-    if (idx >= this.state.image_ids.length - 1) {
-      return 0;
-    }
-    return idx + 1;
+    const { image_ids } = this.props;
+    if (!image_ids || image_ids.length <= 1) return 0;
+    return (idx + 1) % image_ids.length;
   }
 
-  construct_url(idx){
-    const url = this.state.base_url + this.props.image_ids[idx] + '&access_key=' + this.state.img_access_key
-    return url
-  }
+  // Navigate to previous image (blocked at index 0)
+  handlePrev = () => {
+    this.setState((prevState) => {
+      if (prevState.currentIndex > 0) {
+        return { currentIndex: prevState.currentIndex - 1 };
+      }
+      return null; // Don't state-update if at the beginning
+    });
+  };
+
+  // Navigate to next image (blocked at the end of the list)
+  handleNext = () => {
+    this.setState((prevState) => {
+      if (prevState.currentIndex < this.state.image_ids.length - 1) {
+        return { currentIndex: prevState.currentIndex + 1 };
+      }
+      return null; // Don't state-update if at the end
+    });
+  };
 
   tick() {
+    const { image_ids, base_url, img_access_key } = this.props;
+    const baseUrl = `${base_url}api/keyed_image/slideshow/?id=`;
 
-    var next_idx = this.getNextIndex(this.state.index)
-    this.setState({index: next_idx})
-    const next_url = this.construct_url(next_idx)
+    const nextIdx = this.getNextIndex(this.state.currentIndex);
+    const nextUrl = this.buildUrl(baseUrl, image_ids[nextIdx], img_access_key);
+
+    // Consolidate into a single state update to avoid async state issues
     if (this.state.tiktok) {
-      this.setState({idx_tik: next_idx })
-      this.setState({url_tik: next_url })
+      // Currently showing 'tik', so update 'tok' for the next transition
+      this.setState({
+        idx_tok: nextIdx,
+        url_tok: nextUrl,
+        currentIndex: nextIdx,
+        tiktok: false,
+      });
+    } else {
+      // Currently showing 'tok', so update 'tik' for the next transition
+      this.setState({
+        idx_tik: nextIdx,
+        url_tik: nextUrl,
+        currentIndex: nextIdx,
+        tiktok: true,
+      });
     }
-    else{
-      this.setState({idx_tok: next_idx })
-      this.setState({url_tok: next_url })
-    }
-    this.setState({tiktok : !this.state.tiktok})
   }
 
   componentDidMount() {
-    this.interval = setInterval(() => this.tick(), this.state.slide_len * 1000);
+    window.addEventListener('keydown', this.handleKeyDown);
+    if (this.props.image_ids && this.props.image_ids.length > 0) {
+      this.interval = setInterval(() => this.tick(), this.props.slide_len * 1000);
+    }
   }
 
   componentWillUnmount() {
+    window.removeEventListener('keydown', this.handleKeyDown);
     clearInterval(this.interval);
   }
 
+  handleKeyDown = (event) => {
+    if (event.key === 'ArrowLeft') {
+      this.handlePrev();
+    } else if (event.key === 'ArrowRight') {
+      this.handleNext();
+    }
+  };
+
   render() {
+    const durationCss = { animationDuration: `${this.props.slide_len * 2}s` };
+
     return (
       <div className="mask">
-        <div className="pic-wrapper">         
-         <img className={this.state.tiktok? 'hidden' : 'visible'} src={this.state.url_tik} alt="" style={this.state.css}/>          
-         <img className={!this.state.tiktok? 'hidden' : 'visible'} src={this.state.url_tok} alt="" style={this.state.css}/>
+        <div className="pic-wrapper">
+          <img
+            className={this.state.tiktok ? 'visible' : 'hidden'}
+            src={this.state.url_tik}
+            alt=""
+            style={durationCss}
+            // onLoad={() => console.log('✅ Loaded Tik:', this.state.url_tik)}
+            onError={(e) => {
+              console.error('❌ Failed to load Tik URL:', this.state.url_tik);
+              // alert(`Failed to load image: ${this.state.url_tik}`);
+           }}
+          />
+          <img
+            className={this.state.tiktok ? 'hidden' : 'visible'}
+            src={this.state.url_tok}
+            alt=""
+            style={durationCss}
+	    // onLoad={() => console.log('✅ Loaded Tok:', this.state.url_tok)}
+	    onError={(e) => {
+	      console.error('❌ Failed to load Tok URL:', this.state.url_tok);
+	      // alert(`Failed to load image: ${this.state.url_tok}`);
+  	   }}
+          />
         </div>
       </div>
     );
