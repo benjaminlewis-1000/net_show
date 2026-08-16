@@ -1,33 +1,33 @@
-FROM node:13.12.0-alpine
+FROM node:24-alpine
 
 # Create app directory
 WORKDIR /app
 
 ENV PATH /app/node_modules/.bin:$PATH
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+# Install app dependencies. Copying just the manifest files first (from
+# project_root/, since that's where they now live) lets Docker cache
+# this layer separately from source changes - editing App.jsx won't
+# force a full npm ci re-run, only editing package.json will.
+COPY project_root/package*.json ./
 
-RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
+RUN npm ci
 
-# Bundle app source
-COPY . .
+# Bundle the rest of the app source
+COPY project_root/. .
 
-RUN echo "#! /bin/sh " >> /start.sh \ 
+RUN echo "#! /bin/sh " >> /start.sh \
 && echo "" >> /start.sh \
 && echo "npm run build " >> /start.sh \
 && echo "" >> /start.sh \
-&& echo "serve -s build"  >> /start.sh \
-#&& echo "pm2 start npm -- start" >> /start.sh \
-#&& echo "" >> /start.sh \ 
+&& echo "serve -s dist -l 5000"  >> /start.sh \
 && echo "while true; do" >> /start.sh \
 && echo "   sleep 10" >> /start.sh \
 && echo "done " >> /start.sh
 
-EXPOSE 8080
+# 3000 = vite dev server (see vite.config.js), 5000 = production `serve`
+# (explicitly pinned above with -l 5000 to match docker-compose.yml's
+# port mapping and the Traefik label, both of which expect 5000).
+EXPOSE 3000 5000
 
-CMD [ "/bin/sh" "/start.sh" ]
+CMD [ "/bin/sh", "/start.sh" ]

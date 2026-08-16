@@ -19,12 +19,16 @@ img {
   animation-duration: 12s;
   animation-name: fadeIn;
   animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  z-index: 1;
 }
 
 .hidden {
   animation-duration: 12s;
   animation-name: fadeOut;
   animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  z-index: 0;
 }
 
 @keyframes fadeIn {
@@ -63,6 +67,7 @@ img {
     opacity: 0;
   }
 }
+
 
 /*
 .fade-in {
@@ -117,3 +122,57 @@ img {
   100% {
     opacity:1;
 }*/
+
+.slideshow-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Hides the mouse cursor when the 10-second timer expires */
+.slideshow-wrapper.idle-cursor {
+  cursor: none;
+}
+
+/* Invisible trigger zones on the left and right edges */
+.nav-hit-area {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 15%; /* Triggers when mouse is in the outer 15% of the screen */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Only fade the button in when hovering directly over this 15% zone */
+.nav-hit-area:hover {
+  opacity: 1;
+}
+
+.nav-left {
+  left: 0;
+}
+
+.nav-right {
+  right: 0;
+}
+
+/* The actual visible arrow circle inside the hit area */
+.nav-icon {
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 3rem;
+  padding: 1.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.nav-hit-area:hover .nav-icon {
+  background-color: rgba(0, 0, 0, 0.8);
+}

@@ -1,0 +1,112 @@
+/* Browsers default <body> to an 8px margin, which otherwise leaves a
+   sliver of unstyled edge/scrollbar around the slideshow even though
+   .slideshow-wrapper itself is already sized to 100vw/100vh. */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.slideshow-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
+.slideshow-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.slide-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  margin: auto;
+  background: #000;
+}
+
+/* Optional per-slide date/location overlay - only renders when
+   image_meta has an entry for that slide's id. */
+.slide-overlay {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  z-index: 100;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  font-family: sans-serif;
+  pointer-events: none;
+}
+
+.slide-overlay-location {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.slide-overlay-date {
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+/* Hides the mouse cursor when the 10-second idle timer expires */
+.slideshow-wrapper.idle-cursor {
+  cursor: none;
+}
+
+/* Invisible trigger zones on the left and right edges */
+.nav-hit-area {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.nav-hit-area:hover {
+  opacity: 1;
+}
+
+/* Swiper automatically adds this class to prevEl/nextEl at the first/
+   last slide (when loop is off) - hide the hit area entirely then,
+   matching the old isFirst/isLast behavior. */
+.nav-hit-area.swiper-button-disabled {
+  display: none;
+}
+
+/* Hide nav arrows entirely while idle, same as before. */
+.slideshow-wrapper.idle-cursor .nav-hit-area {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.nav-left {
+  left: 0;
+}
+
+.nav-right {
+  right: 0;
+}
+
+.nav-icon {
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 3rem;
+  padding: 1.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.nav-hit-area:hover .nav-icon {
+  background-color: rgba(0, 0, 0, 0.8);
+}

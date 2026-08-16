@@ -5,8 +5,9 @@ import axios from 'axios';
 // import './params.js';
 // import CrossfadeImage from "./crossfade";
 // import CircleLoader from "react-spinners/CircleLoader";
-import RingLoader from "react-spinners/RingLoader";
-import Switcher from "./switcher"
+import { RingLoader } from "react-spinners";
+import Slideshow from "./Slideshow"
+import ErrorBoundary from "./ErrorBoundary"
 
 // store.set('base_url', 'https://picasa.exploretheworld.tech/');
 
@@ -49,8 +50,20 @@ class App extends React.Component {
       help=true;
     }
 
-    const base_url = process.env.REACT_APP_BASE_URL; //store.get('base_url')
-    const picasa_api_key = process.env.REACT_APP_PICASA_API_KEY; // || "6w808pb9Wsg3DiM";
+    // slide_len and help are frontend-only settings - the backend was
+    // never meant to see them, and errors (500) if slide_len shows up
+    // as the only param in the query string with nothing else to work
+    // with. Build a SEPARATE query string for the backend that strips
+    // these out, keeping only params it actually understands (people,
+    // year_start, year_end, cronological, etc.) - the params object
+    // above (used for slide_len/help) is untouched.
+    const backendParams = new URLSearchParams(search);
+    backendParams.delete('slide_len');
+    backendParams.delete('help');
+    const backendSearch = backendParams.toString() ? '?' + backendParams.toString() : '';
+
+    const base_url = import.meta.env.VITE_BASE_URL; //store.get('base_url')
+    const picasa_api_key = import.meta.env.VITE_PICASA_API_KEY; // || "6w808pb9Wsg3DiM";
 
     const axiosInstance = axios.create({
         // baseURL: api_url,
@@ -66,7 +79,7 @@ class App extends React.Component {
     this.state = {
       // token_url: base_url + 'api/token/obtain/',
       param_url: base_url + "api/parameters",
-      list_url: base_url + "api/image_list/" + search,
+      list_url: base_url + "api/image_list/" + backendSearch,
       base_url: base_url,
       loading: true,
       axiosInstance: axiosInstance,
@@ -106,75 +119,57 @@ class App extends React.Component {
     
   // }
 
-  getAccessKey = async() => {
+  getAccessKey = async () => {
+    try {
+      const response = await this.state.axiosInstance.get(this.state.param_url);
+      const key = response.data['random_access_key'];
+      // Resolve with the key value itself, rather than relying on a
+      // later read of this.state.img_access_key. Under React 18,
+      // setState calls made inside promise callbacks are batched and
+      // applied asynchronously - so reading this.state right back
+      // afterward (even in a later .then()) isn't guaranteed to see
+      // this update yet. (In React 16/17 setState outside a React
+      // event handler applied synchronously, which is why the old
+      // "setState then immediately read this.state" pattern worked.)
+      this.setState({ img_access_key: key });
+      return key;
+    } catch (err) {
+      console.log(err);
+      return undefined;
+    }
+  };
 
-    const a = new Promise((resolve, reject) => {
-      this.state.axiosInstance.get(this.state.param_url)
-      .then( (response) => {
-        // this.state.img_access_key = response.data['random_access_key']
-        this.setState({img_access_key: response.data['random_access_key'] })
-        // console.log(this.state.img_access_key)
-        return resolve();
-      }, (param_error) => {
-        console.log(param_error)
-      }).catch(err => {
-          console.log(err)
-      });
-
-    });
-
-    return await a;
-  }
-
-  getList = async() => {
-
-    const a = new Promise((resolve, reject) => {
-
-      this.state.axiosInstance.get(this.state.list_url)
-      .then( (response) => {
-        // this.state.image_ids =  response.data['url_keys']
-        console.log(response)
-        var image_ids = response.data['url_keys']
-        console.log(image_ids.length)
-        if (this.state.shuffle){
-          shuffle(image_ids)  
-        }
-        this.setState({image_ids: image_ids})
-        return resolve();
-      }, (imlist_error) => {
-        console.log(imlist_error)
-      }).catch(err => {
-          console.log(err)
-      });
-
-    });
-
-    return await a;
-  }
+  getList = async () => {
+    try {
+      const response = await this.state.axiosInstance.get(this.state.list_url);
+      var image_ids = response.data['url_keys'];
+      console.log(image_ids.length);
+      if (this.state.shuffle) {
+        shuffle(image_ids);
+      }
+      this.setState({ image_ids: image_ids });
+      // Same fix as getAccessKey() above - resolve with the array
+      // directly instead of trusting a later this.state.image_ids read.
+      return image_ids;
+    } catch (err) {
+      console.log(err);
+      return [];
+    }
+  };
 
 
    componentDidMount() {
-      // this.getURLs() //.then( ()=> {console.log("hi")})
-
-      // document.body.style.backgroundColor = "#e4ede6";
-      // this.login().then( () => {
-      this.getList().then(  () => {
-        this.getAccessKey().then( () => {
-          console.log("Access key is o: " + this.state.img_access_key)
-          var first_img = this.state.base_url + 'api/keyed_image/slideshow/?id=' + this.state.image_ids[0] + '&access_key=' + this.state.img_access_key
-          console.log("First URL: " + first_img)
-          this.setState({image_url: first_img})
-          this.setState({imageIndex: 0})
-          this.setState({loading: false})
-          // document.body.style.backgroundColor = "gray";
+      Promise.all([this.getList(), this.getAccessKey()])
+        .then(([image_ids, img_access_key]) => {
+          var first_img = this.state.base_url + 'api/keyed_image/slideshow/?id=' + image_ids[0] + '&access_key=' + img_access_key
           if (! this.state.help ){
             document.body.style.backgroundColor = "black";
           }
-	  console.log(this.state)
+          this.setState({ image_url: first_img, imageIndex: 0, loading: false });
         })
-      })
-      // })
-
+        .catch((err) => {
+          console.error('[App] failed to load slideshow data:', err);
+        });
    }
 
 //  changeImage() {
@@ -218,13 +213,14 @@ class App extends React.Component {
                 </div>
               ) : (
                 <div >
-                  <Switcher 
-                    source={this.state.image_url}
-                    image_ids={this.state.image_ids}
-                    img_access_key={this.state.img_access_key}
-                    base_url={this.state.base_url}
-                    slide_len={this.state.slide_len}
-                  />
+                  <ErrorBoundary>
+                    <Slideshow
+                      image_ids={this.state.image_ids}
+                      img_access_key={this.state.img_access_key}
+                      base_url={this.state.base_url}
+                      slide_len={this.state.slide_len}
+                    />
+                  </ErrorBoundary>
                 </div>
               )}
               </div>

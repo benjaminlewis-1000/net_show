@@ -1,4 +1,3 @@
-
 services:
   slideshow_web:
     build:
@@ -11,8 +10,8 @@ services:
     container_name: slideshow_web
     env_file:
       - .env
-    command:
-      sh /start.sh
+    # command: sh /start.sh
+    command: sh -c "npm run dev" #  -- --host 0.0.0.0"
 #    entrypoint:
 #       serve -s build
 #        npm start
@@ -27,7 +26,7 @@ services:
      - 8085:5000
     volumes:
       - '/app/node_modules'
-      - /home/benjamin/git_repos/net_slideshow/:/app
+      - /home/benjamin/git_repos/net_slideshow/project_root/:/app
     networks:
       - traefik_proxy
     restart: always
