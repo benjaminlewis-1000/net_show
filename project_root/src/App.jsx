@@ -50,16 +50,25 @@ class App extends React.Component {
       help=true;
     }
 
-    // slide_len and help are frontend-only settings - the backend was
-    // never meant to see them, and errors (500) if slide_len shows up
-    // as the only param in the query string with nothing else to work
-    // with. Build a SEPARATE query string for the backend that strips
-    // these out, keeping only params it actually understands (people,
-    // year_start, year_end, cronological, etc.) - the params object
-    // above (used for slide_len/help) is untouched.
+    // Debug helper: ?debug_limit=N truncates the fetched image list to
+    // N entries client-side, for testing end-of-list/looping behavior
+    // without needing a real backend filter that happens to return a
+    // small set. Frontend-only, like slide_len/help - stripped from
+    // the backend query below the same way.
+    var debug_limit = params.get('debug_limit');
+    debug_limit = debug_limit === null ? null : parseInt(debug_limit, 10);
+
+    // slide_len, help, and debug_limit are frontend-only settings -
+    // the backend was never meant to see them, and errors (500) if
+    // slide_len shows up as the only param in the query string with
+    // nothing else to work with. Build a SEPARATE query string for
+    // the backend that strips these out, keeping only params it
+    // actually understands (people, year_start, year_end,
+    // cronological, etc.) - the params object above is untouched.
     const backendParams = new URLSearchParams(search);
     backendParams.delete('slide_len');
     backendParams.delete('help');
+    backendParams.delete('debug_limit');
     const backendSearch = backendParams.toString() ? '?' + backendParams.toString() : '';
 
     const base_url = import.meta.env.VITE_BASE_URL; //store.get('base_url')
@@ -85,6 +94,7 @@ class App extends React.Component {
       axiosInstance: axiosInstance,
       slide_len: slide_len,
       help: help,
+      debug_limit: debug_limit,
       shuffle: params.get('cronological') === null
     };
 
@@ -146,6 +156,10 @@ class App extends React.Component {
       console.log(image_ids.length);
       if (this.state.shuffle) {
         shuffle(image_ids);
+      }
+      if (this.state.debug_limit && this.state.debug_limit > 0) {
+        image_ids = image_ids.slice(0, this.state.debug_limit);
+        console.log(`[App] debug_limit active: truncated to ${image_ids.length} images`);
       }
       this.setState({ image_ids: image_ids });
       // Same fix as getAccessKey() above - resolve with the array

@@ -10,8 +10,8 @@ services:
     container_name: slideshow_web
     env_file:
       - .env
-    # command: sh /start.sh
-    command: sh -c "npm run dev" #  -- --host 0.0.0.0"
+    command: sh /start.sh
+    # command: sh -c "npm run dev" #  -- --host 0.0.0.0"
 #    entrypoint:
 #       serve -s build
 #        npm start
