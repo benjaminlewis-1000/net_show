@@ -1,3 +1,8 @@
+/* Used by .slide-overlay-location below - @import must come before any
+   other rule in the file, so it lives up here rather than next to the
+   rule that actually uses it. */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap');
+
 /* Browsers default <body> to an 8px margin, which otherwise leaves a
    sliver of unstyled edge/scrollbar around the slideshow even though
    .slideshow-wrapper itself is already sized to 100vw/100vh. */
@@ -31,26 +36,42 @@ html, body {
 }
 
 /* Optional per-slide date/location overlay - only renders when
-   image_meta has an entry for that slide's id. */
+   image_meta has an entry for that slide's id. Playfair Display gives
+   the location a bit of editorial/travel-poster character; the date
+   stays in a plain system sans so it reads as secondary detail rather
+   than competing with it. Both fall back to ordinary system fonts if
+   the Google Fonts request fails (e.g. no network on a kiosk device),
+   so the overlay never depends on it being reachable. */
 .slide-overlay {
   position: absolute;
-  left: 24px;
-  bottom: 24px;
+  left: 32px;
+  bottom: 32px;
   z-index: 100;
+  max-width: min(70vw, 640px);
+  padding: 14px 20px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: #fff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-  font-family: sans-serif;
   pointer-events: none;
 }
 
 .slide-overlay-location {
-  font-size: 1.4rem;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-size: 1.6rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
 .slide-overlay-date {
-  font-size: 1rem;
-  opacity: 0.85;
+  margin-top: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
 }
 
 /* Hides the mouse cursor when the 10-second idle timer expires */

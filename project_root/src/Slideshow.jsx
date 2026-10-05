@@ -15,6 +15,23 @@ import './slideshow.css';
 // trick on literally every single transition.
 const BUFFER = 10;
 
+// Formats the ISO date string the backend sends in full_data (e.g.
+// "2019-12-24T20:07:21+00:00") for on-screen display. Locale-dependent
+// formatting is deliberately kept client-side rather than shipped
+// pre-formatted from the backend.
+const dateFormatter = new Intl.DateTimeFormat(undefined, {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+function formatDate(isoDate) {
+  if (!isoDate) return null;
+  const parsed = new Date(isoDate);
+  if (isNaN(parsed)) return null;
+  return dateFormatter.format(parsed);
+}
+
 function Slideshow({ image_ids, base_url, img_access_key, slide_len, image_meta }) {
   const total = image_ids ? image_ids.length : 0;
 
@@ -204,16 +221,17 @@ function Slideshow({ image_ids, base_url, img_access_key, slide_len, image_meta 
       >
         {windowIds.map((id, i) => {
           const meta = image_meta && image_meta[id];
+          const formattedDate = meta && formatDate(meta.date);
           return (
             // Keyed by absolute logical position (windowStart + i),
             // which stays stable and unique even across loops of the
             // real photo list, since it just keeps counting up.
             <SwiperSlide key={windowStart + i}>
               <img className="slide-img" src={buildUrl(id)} alt="" />
-              {meta && (meta.date || meta.location) && (
+              {meta && (formattedDate || meta.location) && (
                 <div className="slide-overlay">
                   {meta.location && <div className="slide-overlay-location">{meta.location}</div>}
-                  {meta.date && <div className="slide-overlay-date">{meta.date}</div>}
+                  {formattedDate && <div className="slide-overlay-date">{formattedDate}</div>}
                 </div>
               )}
             </SwiperSlide>

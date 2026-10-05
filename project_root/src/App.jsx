@@ -58,10 +58,13 @@ class App extends React.Component {
     var debug_limit = params.get('debug_limit');
     debug_limit = debug_limit === null ? null : parseInt(debug_limit, 10);
 
-    // slide_len, help, and debug_limit are frontend-only settings -
-    // the backend was never meant to see them, and errors (500) if
-    // slide_len shows up as the only param in the query string with
-    // nothing else to work with. Build a SEPARATE query string for
+    // ?show_meta=false hides the date/location overlay - on by default.
+    const show_meta = params.get('show_meta') !== 'false';
+
+    // slide_len, help, debug_limit, and show_meta are frontend-only
+    // settings - the backend was never meant to see them, and errors
+    // (500) if slide_len shows up as the only param in the query string
+    // with nothing else to work with. Build a SEPARATE query string for
     // the backend that strips these out, keeping only params it
     // actually understands (people, year_start, year_end,
     // cronological, etc.) - the params object above is untouched.
@@ -69,7 +72,11 @@ class App extends React.Component {
     backendParams.delete('slide_len');
     backendParams.delete('help');
     backendParams.delete('debug_limit');
-    const backendSearch = backendParams.toString() ? '?' + backendParams.toString() : '';
+    backendParams.delete('show_meta');
+    // Always requested regardless of show_meta - cheap to fetch, and
+    // keeps toggling show_meta a purely client-side decision.
+    backendParams.set('full_data', 'true');
+    const backendSearch = '?' + backendParams.toString();
 
     const base_url = import.meta.env.VITE_BASE_URL; //store.get('base_url')
     const picasa_api_key = import.meta.env.VITE_PICASA_API_KEY; // || "6w808pb9Wsg3DiM";
@@ -95,6 +102,7 @@ class App extends React.Component {
       slide_len: slide_len,
       help: help,
       debug_limit: debug_limit,
+      show_meta: show_meta,
       shuffle: params.get('cronological') === null
     };
 
@@ -153,6 +161,7 @@ class App extends React.Component {
     try {
       const response = await this.state.axiosInstance.get(this.state.list_url);
       var image_ids = response.data['url_keys'];
+      var image_meta = response.data['full_data'] || {};
       console.log(image_ids.length);
       if (this.state.shuffle) {
         shuffle(image_ids);
@@ -161,7 +170,7 @@ class App extends React.Component {
         image_ids = image_ids.slice(0, this.state.debug_limit);
         console.log(`[App] debug_limit active: truncated to ${image_ids.length} images`);
       }
-      this.setState({ image_ids: image_ids });
+      this.setState({ image_ids: image_ids, image_meta: image_meta });
       // Same fix as getAccessKey() above - resolve with the array
       // directly instead of trusting a later this.state.image_ids read.
       return image_ids;
@@ -212,6 +221,7 @@ class App extends React.Component {
               <p>year_start=&lt;year&gt; and/or year_end=&lt;year&gt;</p>
               <p>No arguments -- Slideshow of all photos</p>
               <p>cronological -- Photos stay in chronological order</p>
+              <p>show_meta=false -- Hide the date/location overlay (shown by default)</p>
               </div>
             ) : (
 
@@ -233,6 +243,7 @@ class App extends React.Component {
                       img_access_key={this.state.img_access_key}
                       base_url={this.state.base_url}
                       slide_len={this.state.slide_len}
+                      image_meta={this.state.show_meta ? this.state.image_meta : null}
                     />
                   </ErrorBoundary>
                 </div>
